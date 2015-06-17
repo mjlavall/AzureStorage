@@ -1,0 +1,10 @@
+﻿@model Dictionary<string,string>
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+@foreach (var file in Model)
+{
+    @Html.ActionLink(file.Key, "Player/" + file.Key, "Home")
+}
