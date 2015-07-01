@@ -28,31 +28,23 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.buttonUploadFile = new System.Windows.Forms.Button();
-            this.listBoxBlobs = new System.Windows.Forms.ListBox();
+            this.buttonUploadFiles = new System.Windows.Forms.Button();
             this.buttonDelete = new System.Windows.Forms.Button();
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.buttonDownload = new System.Windows.Forms.Button();
             this.statusText = new System.Windows.Forms.Label();
+            this.tabControl = new System.Windows.Forms.TabControl();
             this.SuspendLayout();
             // 
-            // buttonUploadFile
+            // buttonUploadFiles
             // 
-            this.buttonUploadFile.Location = new System.Drawing.Point(13, 12);
-            this.buttonUploadFile.Name = "buttonUploadFile";
-            this.buttonUploadFile.Size = new System.Drawing.Size(75, 23);
-            this.buttonUploadFile.TabIndex = 0;
-            this.buttonUploadFile.Text = "Upload File";
-            this.buttonUploadFile.UseVisualStyleBackColor = true;
-            this.buttonUploadFile.Click += new System.EventHandler(this.buttonUploadFile_Click);
-            // 
-            // listBoxBlobs
-            // 
-            this.listBoxBlobs.FormattingEnabled = true;
-            this.listBoxBlobs.Location = new System.Drawing.Point(13, 41);
-            this.listBoxBlobs.Name = "listBoxBlobs";
-            this.listBoxBlobs.Size = new System.Drawing.Size(236, 251);
-            this.listBoxBlobs.TabIndex = 1;
+            this.buttonUploadFiles.Location = new System.Drawing.Point(13, 12);
+            this.buttonUploadFiles.Name = "buttonUploadFiles";
+            this.buttonUploadFiles.Size = new System.Drawing.Size(75, 23);
+            this.buttonUploadFiles.TabIndex = 0;
+            this.buttonUploadFiles.Text = "Upload Files";
+            this.buttonUploadFiles.UseVisualStyleBackColor = true;
+            this.buttonUploadFiles.Click += new System.EventHandler(this.buttonUploadFiles_Click);
             // 
             // buttonDelete
             // 
@@ -90,17 +82,26 @@
             this.statusText.TabIndex = 5;
             this.statusText.Text = "Status";
             // 
+            // tabControl
+            // 
+            this.tabControl.Location = new System.Drawing.Point(15, 41);
+            this.tabControl.Name = "tabControl";
+            this.tabControl.SelectedIndex = 0;
+            this.tabControl.Size = new System.Drawing.Size(500, 251);
+            this.tabControl.TabIndex = 6;
+            this.tabControl.SelectedIndexChanged += new System.EventHandler(this.tabControl_SelectedIndexChanged);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(528, 344);
+            this.Controls.Add(this.tabControl);
             this.Controls.Add(this.statusText);
             this.Controls.Add(this.buttonDownload);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.buttonDelete);
-            this.Controls.Add(this.listBoxBlobs);
-            this.Controls.Add(this.buttonUploadFile);
+            this.Controls.Add(this.buttonUploadFiles);
             this.Name = "Main";
             this.Text = "Azure Storage";
             this.ResumeLayout(false);
@@ -110,12 +111,12 @@
 
         #endregion
 
-        private System.Windows.Forms.Button buttonUploadFile;
-        public System.Windows.Forms.ListBox listBoxBlobs;
+        private System.Windows.Forms.Button buttonUploadFiles;
         private System.Windows.Forms.Button buttonDelete;
         public System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Button buttonDownload;
         public System.Windows.Forms.Label statusText;
+        private System.Windows.Forms.TabControl tabControl;
     }
 }
 

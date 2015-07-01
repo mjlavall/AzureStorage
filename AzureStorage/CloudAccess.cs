@@ -28,12 +28,21 @@ namespace AzureStorage
                 return blobClient;
             }
         }
+        public static string ContainerName = "root";
+
+        private static CloudBlobContainer RootContainer
+        {
+            get { return BlobClient.GetRootContainerReference(); }
+        }
         private static CloudBlobContainer Container
         {
             get
             {
-                var container = BlobClient.GetContainerReference("gopro");
-                container.CreateIfNotExists();
+                var container = ContainerName == "root" ? RootContainer : BlobClient.GetContainerReference(ContainerName);
+                if (!container.Exists())
+                {
+                    container = CreateContainer(ContainerName);
+                }
                 container.SetPermissions(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
                 return container;
             }
@@ -45,21 +54,32 @@ namespace AzureStorage
             return Container.ListBlobs();
         }
 
-        public static async void UploadFile(string fileName, string filePath, Main mainScreen)
+        public static CloudBlobContainer CreateContainer(string containerName)
+        {
+            var newContainer = BlobClient.GetContainerReference(containerName);
+            newContainer.CreateIfNotExists();
+            return newContainer;
+        }
+
+        public static void DeleteContainer(string containerName)
+        {
+            BlobClient.GetContainerReference(containerName).DeleteIfExists();
+        }
+
+        public static List<string> GetContainers()
+        {
+            return BlobClient.ListContainers().Select(c => c.Name).ToList();
+        }
+
+        public static async Task<bool> UploadFile(string fileName, string filePath, int totalFiles, int currentFile, Main mainScreen)
         {
             var blockBlob = Container.GetBlockBlobReference(fileName);
             blockBlob.StreamWriteSizeInBytes = BlockSize;
             var bytesToUpload = (new FileInfo(filePath)).Length;
             long fileSize = bytesToUpload;
-            if (bytesToUpload < BlockSize)
+            if (bytesToUpload <= BlockSize)
             {
-                var ado = blockBlob.UploadFromFileAsync(filePath, FileMode.Open);
-                await ado.ContinueWith(t =>
-                {
-                    UpdateProgressBar(mainScreen, 0);
-                    UpdateStatusText(mainScreen, string.Format("{0} was uploaded successfully.", fileName));
-                    mainScreen.UpdateBlobList();
-                });
+                await blockBlob.UploadFromFileAsync(filePath, FileMode.Open);
             }
             else
             {
@@ -67,6 +87,8 @@ namespace AzureStorage
                 int index = 1;
                 long startPosition = 0;
                 long bytesUploaded = 0;
+
+                // upload bytesToRead bytes at a time
                 do
                 {
                     var bytesToRead = Math.Min(BlockSize, bytesToUpload);
@@ -79,6 +101,7 @@ namespace AzureStorage
                     var blockId = Convert.ToBase64String(Encoding.UTF8.GetBytes(index.ToString("d6")));
                     blockIds.Add(blockId);
                     var mre = new ManualResetEvent(false);
+                    // upload current bytesToRead bytes
                     var ado = blockBlob.PutBlockAsync(blockId, new MemoryStream(blobContents), null);
                     await ado.ContinueWith(t =>
                     {
@@ -88,60 +111,63 @@ namespace AzureStorage
                         startPosition += bytesToRead;
                         index++;
                         var percentComplete = (int)Math.Min((double)bytesUploaded/fileSize*100, 100);
-                        UpdateProgressBar(mainScreen, percentComplete);
-                        UpdateStatusText(mainScreen, string.Format("[{0}%] Uploading {1}...", percentComplete, fileName));
+                        mainScreen.UpdateProgressBar(percentComplete);
+                        mainScreen.UpdateStatusText(string.Format("{0} ({1}%) Uploading {2}...", totalFiles > 1 ? string.Format("[{0}/{1}]", currentFile, totalFiles) : "", percentComplete, fileName));
                     });
                     mre.WaitOne();
                 } while (bytesToUpload > 0);
-                var pbl = blockBlob.PutBlockListAsync(blockIds);
-                await pbl.ContinueWith(t =>
-                {
-                    UpdateProgressBar(mainScreen, 0);
-                    UpdateStatusText(mainScreen, string.Format("{0} was uploaded successfully.", fileName));
-                });
+
+                // finalize the upload
+                await blockBlob.PutBlockListAsync(blockIds);
+            }
+            return true;
+        }
+
+        public static async void UploadFiles(string[] fileNames, string[] filePaths, Main mainScreen)
+        {
+            for (var i = 0; i < fileNames.Length; i++)
+            {
+                // upload the file
+                await UploadFile(fileNames[i], filePaths[i], fileNames.Length, i + 1, mainScreen);
+                File.Delete(filePaths[i]);
+                // update the mainscreen to clear progress bar
+                mainScreen.UpdateProgressBar(0);
+                mainScreen.UpdateStatusText(string.Format("{0} was uploaded successfully.", fileNames[i]));
+                mainScreen.UpdateBlobList();
             }
         }
 
-        public static void DownloadFile(string fileName, string filePath, Main mainScreen)
+        public static async Task<bool> DownloadFile(string fileName, string filePath, int totalFiles, int currentFile, Main mainScreen)
         {
             var blockBlob = Container.GetBlockBlobReference(fileName);
-            blockBlob.DownloadToFile(filePath, FileMode.CreateNew);
+            mainScreen.UpdateStatusText(string.Format("{0} Downloading {1}...", totalFiles > 1 ? string.Format("[{0}/{1}]", currentFile, totalFiles) : "", fileName));
+            await blockBlob.DownloadToFileAsync(filePath, FileMode.Create);
+
+            return true;
         }
 
-        public static void DeleteFile(string fileName)
+        public static async void DownloadFiles(string[] fileNames, string[] filePaths, Main mainScreen)
+        {
+            for (var i = 0; i < fileNames.Length; i++)
+            {
+                await DownloadFile(fileNames[i], filePaths[i], fileNames.Length, i + 1, mainScreen);
+
+                // update the mainscreen to clear progress bar
+                mainScreen.UpdateProgressBar(0);
+                mainScreen.UpdateStatusText(string.Format("{0} was downloaded successfully.", fileNames[i]));
+                mainScreen.UpdateBlobList();
+            }
+        }
+
+        public static bool DeleteFile(string fileName)
         {
             var blockBlob = Container.GetBlockBlobReference(fileName);
-            blockBlob.DeleteIfExists();
+            return blockBlob.DeleteIfExists();
         }
 
-        public static void UpdateProgressBar(Main mainScreen, int progress)
+        public static bool DeleteFiles(List<string> fileNames)
         {
-            if (mainScreen.progressBar.InvokeRequired)
-            {
-                mainScreen.Invoke((MethodInvoker)(() =>
-                {
-                    mainScreen.progressBar.Value = progress;
-                }));
-            }
-            else
-            {
-                mainScreen.progressBar.Value = progress;
-            }
-        }
-
-        public static void UpdateStatusText(Main mainScreen, string status)
-        {
-            if (mainScreen.statusText.InvokeRequired)
-            {
-                mainScreen.Invoke((MethodInvoker)(() =>
-                {
-                    mainScreen.statusText.Text = status;
-                }));
-            }
-            else
-            {
-                mainScreen.statusText.Text = status;
-            }
+            return fileNames.Aggregate(true, (current, deleteFile) => DeleteFile(deleteFile) && current);
         }
     }
 }
