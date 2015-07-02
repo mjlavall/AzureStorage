@@ -55,3 +55,5 @@ c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\Azu
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.csproj.GenerateResource.Cache
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.exe
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.pdb
+C:\Users\mlavalley.SATSYS\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.csprojResolveAssemblyReference.cache
+C:\Users\mlavalley.SATSYS\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.CreateContainerForm.resources

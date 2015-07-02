@@ -19,80 +19,103 @@ namespace AzureStorage
 {
     public partial class Main : Form
     {
-        public ListBox ActiveListBox
+        public ListView ActiveListView
         {
             get
             {
-                return tabControl.SelectedTab.Controls.Find(tabControl.SelectedTab.Text + "ListBox", false).FirstOrDefault() as ListBox;
+                if (tabControl.SelectedTab == null) return null;
+                return tabControl.SelectedTab.Controls.Find(tabControl.SelectedTab.Name + "ListView", false).FirstOrDefault() as ListView;
             }
         }
+        private ListViewColumnSorter lvwColumnSorter;
 
         public Main()
         {
+            lvwColumnSorter = new ListViewColumnSorter();
             InitializeComponent();
+        }
+
+        private void Main_Load(object sender, EventArgs e)
+        {
             statusText.Text = "Connected";
-            CloudAccess.CreateContainer("test");
-            var containers = CloudAccess.GetContainers();
-            CloudAccess.ContainerName = containers.Count > 0 ? containers[0] : "root";
             LoadTabs();
-            UpdateBlobList();
+            UpdateAllBlobLists();
         }
 
         public void LoadTabs()
         {
+            var selectedTab = tabControl.SelectedTab ?? null;  
+            tabControl.Controls.Clear();
             var i = 0;
-            var tabPages = CloudAccess.GetContainers().Select(container => new TabPage()
+            foreach (var container in CloudAccess.GetContainers())
             {
-                Location = new Point(0, 0), Name = container, Padding = new Padding(3), Size = new Size(500, 227), TabIndex = i++, Text = container, UseVisualStyleBackColor = true
-            }).ToList();
-            foreach (var tab in tabPages)
-            {
-                tab.Controls.Add(new ListBox()
-                {
-                    FormattingEnabled = true,
-                    Location = new Point(-2, -1),
-                    Name = tab.Text + "ListBox",
-                    SelectionMode = SelectionMode.MultiExtended,
-                    Size = new Size(496, 237),
-                    TabIndex = 1
-                });
-                
-                tabControl.Controls.Add(tab);
-            }
-        }
+                container.FetchAttributes();
 
-        public void UpdateBlobList()
-        {
-            var tab = tabControl.SelectedTab;
-            if (ActiveListBox == null) return;
-            CloudAccess.ContainerName = tab.Text;
-            if (ActiveListBox.InvokeRequired)
-            {
-                Invoke((MethodInvoker)(() => ActiveListBox.Items.Clear()));
+                var tabTitle = "--";
+                container.Metadata.TryGetValue("Title", out tabTitle);
+                tabControl.Controls.Add(CreateTab(container.Name, tabTitle, i++));
             }
-            else
+            if (selectedTab != null)
             {
-                ActiveListBox.Items.Clear();
-            }
-            foreach (var item in CloudAccess.GetFiles())
-            {
-                if (!(item is CloudBlockBlob)) continue;
-                var blob = (CloudBlockBlob)item;
-                var blobItem = new BlobItem { Name = blob.Name, Url = blob.Uri.ToString()};
-                if (ActiveListBox.InvokeRequired)
+                var tabToSelect = tabControl.Controls.Find(selectedTab.Name, false).FirstOrDefault();
+                if (tabToSelect != null)
                 {
-                    Invoke((MethodInvoker)(() => ActiveListBox.Items.Add(blobItem)));
+                    tabControl.SelectTab(selectedTab.Name);
                 }
                 else
                 {
-                    ActiveListBox.Items.Add(blobItem);
+                    if (tabControl.Controls.Count > 0) tabControl.SelectTab(tabControl.Controls[0].Name);
+                }
+            }
+            else
+            {
+                if (tabControl.Controls.Count > 0) tabControl.SelectTab(tabControl.Controls[0].Name);
+            }
+        }
+
+        public void UpdateAllBlobLists()
+        {
+            foreach (var tab in tabControl.Controls)
+            {
+                UpdateBlobList(((TabPage)tab).Name);
+            }
+        }
+
+        public void UpdateBlobList(string tabName = null)
+        {
+            if (tabName == null && tabControl.SelectedTab != null) tabName = tabControl.SelectedTab.Name;
+            var tab = tabControl.Controls.Find(tabName ?? "", false).FirstOrDefault() as TabPage;
+            if (tab == null) return;
+            var listView = tab.Controls.Find(tab.Text + "ListView", false).FirstOrDefault() as ListView;
+            if (listView == null) return;
+            if (listView.InvokeRequired)
+            {
+                Invoke((MethodInvoker)(() => listView.Items.Clear()));
+            }
+            else
+            {
+                listView.Items.Clear();
+            }
+            foreach (var item in CloudAccess.GetFiles(tabName))
+            {
+                if (!(item is CloudBlockBlob)) continue;
+                var blob = (CloudBlockBlob)item;
+                var listItem = new ListViewItem(blob.Name);
+                listItem.SubItems.Add(GetFileSize(blob.Properties.Length));
+                listItem.SubItems.Add(blob.Properties.LastModified.HasValue ? blob.Properties.LastModified.Value.ToString("G") : "null");
+                if (listView.InvokeRequired)
+                {
+                    Invoke((MethodInvoker)(() => listView.Items.Add(listItem)));
+                }
+                else
+                {
+                    listView.Items.Add(listItem);
                 }
             }
         }
 
         private void buttonUploadFiles_Click(object sender, EventArgs e)
         {
-
             using (var ofd = new OpenFileDialog()
             {
                 Multiselect = true,
@@ -102,7 +125,10 @@ namespace AzureStorage
             {
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    CloudAccess.UploadFiles(ofd.SafeFileNames, ofd.FileNames, this);
+                    bool deleteLocal =
+                        MessageBox.Show("Delete local files after upload?", "Delete Local?", MessageBoxButtons.YesNo) ==
+                        DialogResult.Yes;
+                    CloudAccess.UploadFiles(ofd.SafeFileNames, ofd.FileNames, deleteLocal, tabControl.SelectedTab.Name, this);
                 }
             }
             UpdateBlobList();
@@ -110,36 +136,39 @@ namespace AzureStorage
 
         private void buttonDownload_Click(object sender, EventArgs e)
         {
-            var blobItems = (from object item in ActiveListBox.SelectedItems select item as BlobItem).ToList();
+            var blobItems = (from object item in ActiveListView.SelectedItems select item as ListViewItem).ToList();
             if (blobItems.Count == 0) return;
             using (var fbd = new FolderBrowserDialog())
             {
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     var path = fbd.SelectedPath;
-                    CloudAccess.DownloadFiles(blobItems.Select(b => b.Name).ToArray(), blobItems.Select(b => Path.Combine(path, b.Name)).ToArray(), this);
+                    CloudAccess.DownloadFiles(blobItems.Select(b => b.Text).ToArray(), blobItems.Select(b => Path.Combine(path, b.Text)).ToArray(), tabControl.SelectedTab.Name, this);
                 }
             }
         }
 
         private void buttonDelete_Click(object sender, EventArgs e)
         {
-            var blobItems = (from object item in ActiveListBox.SelectedItems select item as BlobItem).ToList();
+            var blobItems = (from object item in ActiveListView.SelectedItems select item as ListViewItem).ToList();
             if (blobItems.Count == 0) return;
-            var success = CloudAccess.DeleteFiles(blobItems.Select(b => b.Name).ToList());
-            if (success)
+            if (MessageBox.Show("Are you sure you want to delete the selected files?", "Confirm File Deletion", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                UpdateStatusText(blobItems.Count == 1
-                    ? string.Format("{0} was successfully deleted.", blobItems[0].Name)
-                    : "All selected files were successfully deleted.");
+                var success = CloudAccess.DeleteFiles(blobItems.Select(b => b.Text).ToList(), tabControl.SelectedTab.Name);
+                if (success)
+                {
+                    UpdateStatusText(blobItems.Count == 1
+                        ? string.Format("{0} was successfully deleted.", blobItems[0].Text)
+                        : "All selected files were successfully deleted.");
+                }
+                else
+                {
+                    UpdateStatusText(blobItems.Count == 1
+                        ? string.Format("Failed to delete {0}", blobItems[0].Text)
+                        : "Some selected files failed to be deleted...");
+                }
+                UpdateBlobList();
             }
-            else
-            {
-                UpdateStatusText(blobItems.Count == 1
-                    ? string.Format("Failed to delete {0}", blobItems[0].Name)
-                    : "Some selected files failed to be deleted...");
-            }
-            UpdateBlobList();
         }
 
         public void UpdateProgressBar(int progress)
@@ -172,19 +201,101 @@ namespace AzureStorage
             }
         }
 
-        public class BlobItem
+        protected void ListViewColumnClick(object sender, ColumnClickEventArgs e)
         {
-            public string Name { get; set; }
-            public string Url { get; set; }
-            public override string ToString()
+            var listView = sender as ListView;
+            if (listView == null) return;
+            if (e.Column == lvwColumnSorter.SortColumn)
             {
-                return Name;
+                lvwColumnSorter.Order = lvwColumnSorter.Order == SortOrder.Ascending
+                    ? SortOrder.Descending
+                    : SortOrder.Ascending;
             }
+            else
+            {
+                lvwColumnSorter.SortColumn = e.Column;
+                lvwColumnSorter.Order = SortOrder.Ascending;
+            }
+            listView.Sort();
+        }
+
+        public string GetFileSize(double bytes)
+        {
+            string[] units = {"B", "KB", "MB", "GB", "TB"};
+            if (bytes < 1024) return "< 1 KB";
+            int i = 0;
+            while (bytes > 1024)
+            {
+                bytes /= 1024.0;
+                i++;
+            }
+            if (i >= units.Length) return "??";
+            return string.Format("{0:0.00} {1}", bytes, units[i]);
         }
 
         private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateBlobList();
+            //UpdateBlobList();
+        }
+
+        private void buttonCreateContainer_Click(object sender, EventArgs e)
+        {
+            using (var createForm = new CreateContainerForm())
+            {
+                if (createForm.ShowDialog() == DialogResult.OK)
+                {
+                    var container = CloudAccess.CreateContainer(createForm.ContainerName);
+                    container.FetchAttributes();
+                    var tabTitle = "--";
+                    container.Metadata.TryGetValue("Title", out tabTitle);
+                    if (tabControl.Controls.ContainsKey(container.Name))
+                    {
+                        tabControl.Controls.RemoveByKey(container.Name);
+                    }
+                    tabControl.Controls.Add(CreateTab(container.Name, tabTitle, tabControl.Controls.Count));
+                }
+            }
+        }
+
+        private void buttonDeleteContainer_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show(string.Format("Are you sure you want to delete container [{0}]",
+                tabControl.SelectedTab.Text), "Confirm Container Deletion", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                return;
+            CloudAccess.DeleteContainer(tabControl.SelectedTab.Name);
+            tabControl.Controls.Remove(tabControl.SelectedTab);
+        }
+
+        private TabPage CreateTab(string tabName, string tabTitle, int index)
+        {
+            var tab = new TabPage()
+            {
+                Location = new Point(0, 0),
+                Name = tabName,
+                Padding = new Padding(3),
+                Size = new Size(500, 227),
+                TabIndex = index,
+                Text = tabTitle,
+                UseVisualStyleBackColor = true
+            };
+            var listView = new ListView()
+            {
+                FullRowSelect = true,
+                GridLines = true,
+                Location = new Point(-2, -1),
+                Name = tab.Text + "ListView",
+                Size = new Size(496, 237),
+                TabIndex = 1,
+                UseCompatibleStateImageBehavior = false,
+                View = View.Details,
+                ListViewItemSorter = lvwColumnSorter
+            };
+            listView.ColumnClick += ListViewColumnClick;
+            listView.Columns.Add("Filename", 250);
+            listView.Columns.Add("Size", 75);
+            listView.Columns.Add("Date", 150);
+            tab.Controls.Add(listView);
+            return tab;
         }
     }
 }
