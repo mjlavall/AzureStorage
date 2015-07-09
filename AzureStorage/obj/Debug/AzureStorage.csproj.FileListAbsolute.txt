@@ -50,9 +50,10 @@ c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\Azu
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\bin\Debug\ru\System.Spatial.resources.dll
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\bin\Debug\zh-Hans\System.Spatial.resources.dll
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\bin\Debug\zh-Hant\System.Spatial.resources.dll
-c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.csprojResolveAssemblyReference.cache
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.Main.resources
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.Properties.Resources.resources
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.csproj.GenerateResource.Cache
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.exe
 c:\users\mlavalley.satsys\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.pdb
+C:\Users\mlavalley.SATSYS\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.csprojResolveAssemblyReference.cache
+C:\Users\mlavalley.SATSYS\documents\visual studio 2012\Projects\AzureStorage\AzureStorage\obj\Debug\AzureStorage.CreateContainerForm.resources
