@@ -42,9 +42,10 @@ namespace AzureStorage
             // 
             // buttonUploadFiles
             // 
-            this.buttonUploadFiles.Location = new System.Drawing.Point(13, 12);
+            this.buttonUploadFiles.Location = new System.Drawing.Point(20, 18);
+            this.buttonUploadFiles.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.buttonUploadFiles.Name = "buttonUploadFiles";
-            this.buttonUploadFiles.Size = new System.Drawing.Size(75, 23);
+            this.buttonUploadFiles.Size = new System.Drawing.Size(112, 35);
             this.buttonUploadFiles.TabIndex = 0;
             this.buttonUploadFiles.Text = "Upload Files";
             this.buttonUploadFiles.UseVisualStyleBackColor = true;
@@ -52,9 +53,10 @@ namespace AzureStorage
             // 
             // buttonDelete
             // 
-            this.buttonDelete.Location = new System.Drawing.Point(191, 12);
+            this.buttonDelete.Location = new System.Drawing.Point(286, 18);
+            this.buttonDelete.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.buttonDelete.Name = "buttonDelete";
-            this.buttonDelete.Size = new System.Drawing.Size(82, 23);
+            this.buttonDelete.Size = new System.Drawing.Size(123, 35);
             this.buttonDelete.TabIndex = 2;
             this.buttonDelete.Text = "Delete Files";
             this.buttonDelete.UseVisualStyleBackColor = true;
@@ -62,16 +64,18 @@ namespace AzureStorage
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(15, 306);
+            this.progressBar.Location = new System.Drawing.Point(22, 471);
+            this.progressBar.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(497, 23);
+            this.progressBar.Size = new System.Drawing.Size(746, 35);
             this.progressBar.TabIndex = 3;
             // 
             // buttonDownload
             // 
-            this.buttonDownload.Location = new System.Drawing.Point(94, 12);
+            this.buttonDownload.Location = new System.Drawing.Point(141, 18);
+            this.buttonDownload.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.buttonDownload.Name = "buttonDownload";
-            this.buttonDownload.Size = new System.Drawing.Size(91, 23);
+            this.buttonDownload.Size = new System.Drawing.Size(136, 35);
             this.buttonDownload.TabIndex = 4;
             this.buttonDownload.Text = "Download Files";
             this.buttonDownload.UseVisualStyleBackColor = true;
@@ -80,26 +84,29 @@ namespace AzureStorage
             // statusText
             // 
             this.statusText.AutoSize = true;
-            this.statusText.Location = new System.Drawing.Point(12, 332);
+            this.statusText.Location = new System.Drawing.Point(18, 511);
+            this.statusText.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.statusText.Name = "statusText";
-            this.statusText.Size = new System.Drawing.Size(37, 13);
+            this.statusText.Size = new System.Drawing.Size(56, 20);
             this.statusText.TabIndex = 5;
             this.statusText.Text = "Status";
             // 
             // tabControl
             // 
-            this.tabControl.Location = new System.Drawing.Point(15, 41);
+            this.tabControl.Location = new System.Drawing.Point(22, 63);
+            this.tabControl.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(500, 259);
+            this.tabControl.Size = new System.Drawing.Size(750, 398);
             this.tabControl.TabIndex = 6;
             this.tabControl.SelectedIndexChanged += new System.EventHandler(this.tabControl_SelectedIndexChanged);
             // 
             // buttonCreateContainer
             // 
-            this.buttonCreateContainer.Location = new System.Drawing.Point(299, 12);
+            this.buttonCreateContainer.Location = new System.Drawing.Point(448, 18);
+            this.buttonCreateContainer.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.buttonCreateContainer.Name = "buttonCreateContainer";
-            this.buttonCreateContainer.Size = new System.Drawing.Size(104, 23);
+            this.buttonCreateContainer.Size = new System.Drawing.Size(156, 35);
             this.buttonCreateContainer.TabIndex = 7;
             this.buttonCreateContainer.Text = "Create Container";
             this.buttonCreateContainer.UseVisualStyleBackColor = true;
@@ -107,9 +114,10 @@ namespace AzureStorage
             // 
             // buttonDeleteContainer
             // 
-            this.buttonDeleteContainer.Location = new System.Drawing.Point(409, 12);
+            this.buttonDeleteContainer.Location = new System.Drawing.Point(614, 18);
+            this.buttonDeleteContainer.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.buttonDeleteContainer.Name = "buttonDeleteContainer";
-            this.buttonDeleteContainer.Size = new System.Drawing.Size(103, 23);
+            this.buttonDeleteContainer.Size = new System.Drawing.Size(154, 35);
             this.buttonDeleteContainer.TabIndex = 8;
             this.buttonDeleteContainer.Text = "Delete Container";
             this.buttonDeleteContainer.UseVisualStyleBackColor = true;
@@ -117,9 +125,9 @@ namespace AzureStorage
             // 
             // Main
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(530, 351);
+            this.ClientSize = new System.Drawing.Size(795, 540);
             this.Controls.Add(this.buttonDeleteContainer);
             this.Controls.Add(this.buttonCreateContainer);
             this.Controls.Add(this.tabControl);
@@ -128,6 +136,8 @@ namespace AzureStorage
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.buttonDelete);
             this.Controls.Add(this.buttonUploadFiles);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "Main";
             this.Text = "Azure Storage";
             this.Load += new System.EventHandler(this.Main_Load);
